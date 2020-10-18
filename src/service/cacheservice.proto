@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package service;
+
+option go_package = "github.com/TasSM/appCache/service";
+
+// Service to expose the cache operations
+service ArrayBasedCache {
+  rpc CreateRecord (CreateRecordRequest) returns (CreateRecordResponse) {}
+  rpc StoreMessage (AppendRecordRequest) returns (AppendRecordResponse) {}
+  rpc GetStatistics (Empty) returns (StatisticResponse) {}
+}
+
+message CreateRecordRequest {
+  string key = 1;
+  int64 ttl = 2;
+}
+
+message CreateRecordResponse {
+  string key = 1;
+  int64 ttl = 2;
+}
+
+message AppendRecordRequest {
+  string key  = 1;
+  string message = 2; 
+}
+
+message AppendRecordResponse {
+  bool status = 1;
+}
+
+message Empty {}
+
+message StatisticResponse {
+  int32 serverCount = 1;
+  int32 userCount = 2;
+  int64 lastUpdate = 3;
+}
