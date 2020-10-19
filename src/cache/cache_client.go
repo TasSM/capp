@@ -4,10 +4,15 @@ import (
 	"log"
 	"time"
 
+	"github.com/TasSM/appCache/defs"
 	"github.com/gomodule/redigo/redis"
 )
 
-func CreateConnectionPool(addr string) *redis.Pool {
+type client struct {
+	cp *redis.Pool
+}
+
+func createConnPool(addr string) *redis.Pool {
 	return &redis.Pool{
 		MaxIdle:     5,
 		IdleTimeout: 240,
@@ -15,8 +20,14 @@ func CreateConnectionPool(addr string) *redis.Pool {
 	}
 }
 
-func KeyExists(key string, cp *redis.Pool) bool {
-	conn := cp.Get()
+func NewCacheClient(addr string) defs.CacheClientService {
+	return &client{
+		cp: createConnPool(addr),
+	}
+}
+
+func (c *client) KeyExists(key string) bool {
+	conn := c.cp.Get()
 	defer conn.Close()
 	res, err := redis.Int(conn.Do("EXISTS", key))
 	if err != nil {
@@ -28,8 +39,8 @@ func KeyExists(key string, cp *redis.Pool) bool {
 	return false
 }
 
-func CreateCacheArrayRecord(key string, expiry int64, cp *redis.Pool) bool {
-	conn := cp.Get()
+func (c *client) CreateCacheArrayRecord(key string, expiry int64) bool {
+	conn := c.cp.Get()
 	defer conn.Close()
 	conn.Send("LPUSH", key, "BEGIN")
 	conn.Send("EXPIREAT", key, expiry)
@@ -42,7 +53,7 @@ func CreateCacheArrayRecord(key string, expiry int64, cp *redis.Pool) bool {
 }
 
 // func to create new Redis record - called from a different API route
-func StartCacheLoop(key string, expiry int64, cp *redis.Pool, dc chan string) {
+func (c *client) Start(key string, expiry int64, dc chan string) {
 	for {
 		select {
 		case msg := <-dc:
@@ -50,7 +61,7 @@ func StartCacheLoop(key string, expiry int64, cp *redis.Pool, dc chan string) {
 				log.Printf("INFO - Closing cache connection for expired server %s", key)
 				return
 			}
-			conn := cp.Get()
+			conn := c.cp.Get()
 			if _, err := conn.Do("RPUSH", key, msg); err != nil {
 				panic(err)
 				log.Printf("ERROR - Writing message to key %s failed", key)
