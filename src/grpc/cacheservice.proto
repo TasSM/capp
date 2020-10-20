@@ -13,12 +13,12 @@ service ArrayBasedCache {
 
 message CreateRecordRequest {
   string key = 1;
-  int64 ttl = 2;
+  int32 ttl = 2;
 }
 
 message CreateRecordResponse {
   string key = 1;
-  int64 ttl = 2;
+  int32 ttl = 2;
 }
 
 message AppendRecordRequest {

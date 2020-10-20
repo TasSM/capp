@@ -39,7 +39,7 @@ func (c *client) KeyExists(key string) bool {
 	return false
 }
 
-func (c *client) CreateCacheArrayRecord(key string, expiry int64) bool {
+func (c *client) CreateCacheArrayRecord(key string, expiry int64) error {
 	conn := c.cp.Get()
 	defer conn.Close()
 	conn.Send("LPUSH", key, "BEGIN")
@@ -47,9 +47,9 @@ func (c *client) CreateCacheArrayRecord(key string, expiry int64) bool {
 	conn.Flush()
 	conn.Receive()
 	if _, err := conn.Receive(); err != nil {
-		panic(err)
+		return err
 	}
-	return true
+	return nil
 }
 
 // func to create new Redis record - called from a different API route
