@@ -1,4 +1,4 @@
-package cache
+package service
 
 import (
 	"log"
@@ -12,17 +12,21 @@ type client struct {
 	cp *redis.Pool
 }
 
-func createConnPool(addr string) *redis.Pool {
-	return &redis.Pool{
-		MaxIdle:     5,
-		IdleTimeout: 240,
-		Dial:        func() (redis.Conn, error) { return redis.Dial("tcp", addr) },
-	}
-}
-
 func NewCacheClient(addr string) defs.CacheClientService {
 	return &client{
-		cp: createConnPool(addr),
+		cp: &redis.Pool{
+			MaxIdle:     5,
+			IdleTimeout: 240,
+			Dial: func() (redis.Conn, error) {
+				conn, err := redis.Dial("tcp", addr)
+				if err != nil {
+					log.Printf("Failed to dial redis host at %s", addr)
+					panic(err)
+				}
+				log.Printf("Successfully dialed redis host at %s", addr)
+				return conn, nil
+			},
+		},
 	}
 }
 
@@ -39,16 +43,21 @@ func (c *client) KeyExists(key string) bool {
 	return false
 }
 
-func (c *client) CreateCacheArrayRecord(key string, expiry int64) error {
+func (c *client) CreateCacheArrayRecord(key string, ttl int64) error {
 	conn := c.cp.Get()
 	defer conn.Close()
+
+	//rewrite this as a transaction with MULTI
+
 	conn.Send("LPUSH", key, "BEGIN")
-	conn.Send("EXPIREAT", key, expiry)
+	conn.Send("EXPIREAT", key, ttl)
 	conn.Flush()
 	conn.Receive()
 	if _, err := conn.Receive(); err != nil {
+		log.Printf("Received Error Status")
 		return err
 	}
+	log.Printf("Created record with key %v and ttl %d", key, ttl)
 	return nil
 }
 

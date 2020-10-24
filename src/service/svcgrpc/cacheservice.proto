@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package service;
 
-option go_package = "github.com/TasSM/appCache/grpc";
+option go_package = "github.com/TasSM/appCache/service/svcgrpc";
 
 // Service to expose the cache operations
 service ArrayBasedCache {
