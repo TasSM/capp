@@ -20,6 +20,7 @@ type ArrayBasedCacheClient interface {
 	CreateRecord(ctx context.Context, in *CreateRecordRequest, opts ...grpc.CallOption) (*CreateRecordResponse, error)
 	StoreMessage(ctx context.Context, in *AppendRecordRequest, opts ...grpc.CallOption) (*AppendRecordResponse, error)
 	GetStatistics(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StatisticResponse, error)
+	GetRecord(ctx context.Context, in *GetRecordRequest, opts ...grpc.CallOption) (ArrayBasedCache_GetRecordClient, error)
 }
 
 type arrayBasedCacheClient struct {
@@ -57,6 +58,38 @@ func (c *arrayBasedCacheClient) GetStatistics(ctx context.Context, in *Empty, op
 	return out, nil
 }
 
+func (c *arrayBasedCacheClient) GetRecord(ctx context.Context, in *GetRecordRequest, opts ...grpc.CallOption) (ArrayBasedCache_GetRecordClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_ArrayBasedCache_serviceDesc.Streams[0], "/service.ArrayBasedCache/GetRecord", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &arrayBasedCacheGetRecordClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type ArrayBasedCache_GetRecordClient interface {
+	Recv() (*MessageResponse, error)
+	grpc.ClientStream
+}
+
+type arrayBasedCacheGetRecordClient struct {
+	grpc.ClientStream
+}
+
+func (x *arrayBasedCacheGetRecordClient) Recv() (*MessageResponse, error) {
+	m := new(MessageResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // ArrayBasedCacheServer is the server API for ArrayBasedCache service.
 // All implementations must embed UnimplementedArrayBasedCacheServer
 // for forward compatibility
@@ -64,6 +97,7 @@ type ArrayBasedCacheServer interface {
 	CreateRecord(context.Context, *CreateRecordRequest) (*CreateRecordResponse, error)
 	StoreMessage(context.Context, *AppendRecordRequest) (*AppendRecordResponse, error)
 	GetStatistics(context.Context, *Empty) (*StatisticResponse, error)
+	GetRecord(*GetRecordRequest, ArrayBasedCache_GetRecordServer) error
 	mustEmbedUnimplementedArrayBasedCacheServer()
 }
 
@@ -79,6 +113,9 @@ func (UnimplementedArrayBasedCacheServer) StoreMessage(context.Context, *AppendR
 }
 func (UnimplementedArrayBasedCacheServer) GetStatistics(context.Context, *Empty) (*StatisticResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatistics not implemented")
+}
+func (UnimplementedArrayBasedCacheServer) GetRecord(*GetRecordRequest, ArrayBasedCache_GetRecordServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetRecord not implemented")
 }
 func (UnimplementedArrayBasedCacheServer) mustEmbedUnimplementedArrayBasedCacheServer() {}
 
@@ -147,6 +184,27 @@ func _ArrayBasedCache_GetStatistics_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ArrayBasedCache_GetRecord_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetRecordRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ArrayBasedCacheServer).GetRecord(m, &arrayBasedCacheGetRecordServer{stream})
+}
+
+type ArrayBasedCache_GetRecordServer interface {
+	Send(*MessageResponse) error
+	grpc.ServerStream
+}
+
+type arrayBasedCacheGetRecordServer struct {
+	grpc.ServerStream
+}
+
+func (x *arrayBasedCacheGetRecordServer) Send(m *MessageResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 var _ArrayBasedCache_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "service.ArrayBasedCache",
 	HandlerType: (*ArrayBasedCacheServer)(nil),
@@ -164,6 +222,12 @@ var _ArrayBasedCache_serviceDesc = grpc.ServiceDesc{
 			Handler:    _ArrayBasedCache_GetStatistics_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "service/svcgrpc/cacheservice.proto",
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetRecord",
+			Handler:       _ArrayBasedCache_GetRecord_Handler,
+			ServerStreams: true,
+		},
+	},
+	Metadata: "cacheservice.proto",
 }

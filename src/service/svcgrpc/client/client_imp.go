@@ -2,6 +2,8 @@ package client
 
 import (
 	"context"
+	"errors"
+	"io"
 	"time"
 
 	"github.com/TasSM/appCache/service/svcgrpc"
@@ -54,7 +56,7 @@ func (s *GrpcService) StoreMessage(key string, message string) (*svcgrpc.AppendR
 	return resp, nil
 }
 
-func (s *GrpcService) GetStatistics(key string, message string) (*svcgrpc.StatisticResponse, error) {
+func (s *GrpcService) GetStatistics() (*svcgrpc.StatisticResponse, error) {
 	req := &svcgrpc.Empty{}
 	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancelFunc()
@@ -63,4 +65,29 @@ func (s *GrpcService) GetStatistics(key string, message string) (*svcgrpc.Statis
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (s *GrpcService) GetRecord(key string) (svcgrpc.ArrayBasedCache_GetRecordClient, error) {
+	req := &svcgrpc.GetRecordRequest{Key: key}
+	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancelFunc()
+	resp, err := s.grpcClient.GetRecord(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s *GrpcService) StreamToArray(stream svcgrpc.ArrayBasedCache_GetRecordClient) ([]string, error) {
+	out := []string{}
+	for {
+		msg, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				return out, nil
+			}
+			return nil, errors.New("Unexpected error reading stream")
+		}
+		out = append(out, msg.Message)
+	}
 }

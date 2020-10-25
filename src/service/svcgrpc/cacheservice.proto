@@ -9,6 +9,7 @@ service ArrayBasedCache {
   rpc CreateRecord (CreateRecordRequest) returns (CreateRecordResponse) {}
   rpc StoreMessage (AppendRecordRequest) returns (AppendRecordResponse) {}
   rpc GetStatistics (Empty) returns (StatisticResponse) {}
+  rpc GetRecord (GetRecordRequest) returns (stream MessageResponse) {}
 }
 
 message CreateRecordRequest {
@@ -30,10 +31,18 @@ message AppendRecordResponse {
   bool status = 1;
 }
 
+message GetRecordRequest {
+  string key = 1;
+}
+
+message MessageResponse {
+  string message = 1;
+}
+
 message Empty {}
 
 message StatisticResponse {
-  int32 serverCount = 1;
-  int32 userCount = 2;
-  int64 lastUpdate = 3;
+  int32 recordCount = 1;
+  int32 redisConnections = 2;
+  string lastUpdate = 3;
 }

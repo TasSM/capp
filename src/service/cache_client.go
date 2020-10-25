@@ -30,6 +30,10 @@ func NewCacheClient(addr string) defs.CacheClientService {
 	}
 }
 
+func (c *client) GetActiveConnections() int {
+	return c.cp.ActiveCount()
+}
+
 func (c *client) KeyExists(key string) bool {
 	conn := c.cp.Get()
 	defer conn.Close()
@@ -46,19 +50,27 @@ func (c *client) KeyExists(key string) bool {
 func (c *client) CreateCacheArrayRecord(key string, ttl int64) error {
 	conn := c.cp.Get()
 	defer conn.Close()
-
-	//rewrite this as a transaction with MULTI
-
+	conn.Send("MULTI")
 	conn.Send("LPUSH", key, "BEGIN")
-	conn.Send("EXPIREAT", key, ttl)
-	conn.Flush()
-	conn.Receive()
-	if _, err := conn.Receive(); err != nil {
+	conn.Send("EXPIRE", key, ttl)
+	res, err := conn.Do("EXEC")
+	if err != nil {
 		log.Printf("Received Error Status")
 		return err
 	}
-	log.Printf("Created record with key %v and ttl %d", key, ttl)
+	log.Printf("Received status from redis %v", res)
 	return nil
+}
+
+func (c *client) ReadArrayRecord(key string) ([]string, error) {
+	conn := c.cp.Get()
+	defer conn.Close()
+	res, err := redis.Strings(conn.Do("LRANGE", key, 1, -1))
+	if err != nil {
+		log.Printf("Unable to read record %v", key)
+		return nil, err
+	}
+	return res, nil
 }
 
 // func to create new Redis record - called from a different API route
