@@ -6,7 +6,7 @@ import (
 
 	"github.com/TasSM/appCache/service"
 	"github.com/TasSM/appCache/service/controller"
-	"github.com/TasSM/appCache/service/svcgrpc"
+	"github.com/TasSM/appCache/svcgrpc"
 	"github.com/TasSM/appCache/util"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"

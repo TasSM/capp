@@ -69,8 +69,7 @@ func (s *GrpcService) GetStatistics() (*svcgrpc.StatisticResponse, error) {
 
 func (s *GrpcService) GetRecord(key string) (svcgrpc.ArrayBasedCache_GetRecordClient, error) {
 	req := &svcgrpc.GetRecordRequest{Key: key}
-	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultTimeout)
-	defer cancelFunc()
+	ctx := context.Background()
 	resp, err := s.grpcClient.GetRecord(ctx, req)
 	if err != nil {
 		return nil, err
@@ -82,12 +81,13 @@ func (s *GrpcService) StreamToArray(stream svcgrpc.ArrayBasedCache_GetRecordClie
 	out := []string{}
 	for {
 		msg, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
-			if err == io.EOF {
-				return out, nil
-			}
 			return nil, errors.New("Unexpected error reading stream")
 		}
 		out = append(out, msg.Message)
 	}
+	return out, nil
 }

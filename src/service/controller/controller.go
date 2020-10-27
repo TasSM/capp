@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/TasSM/appCache/defs"
-	"github.com/TasSM/appCache/service/svcgrpc"
+	"github.com/TasSM/appCache/svcgrpc"
 )
 
 type cacheClientController struct {
@@ -84,16 +84,16 @@ func (ctlr *cacheClientController) GetRecord(req *svcgrpc.GetRecordRequest, stre
 	if ctlr.inputChannels[key] == nil {
 		return errors.New("Requested record has expired")
 	}
-	msgs, err := ctlr.client.ReadArrayRecord(key)
-	if err != nil {
-		panic(err)
+	msgs, e1 := ctlr.client.ReadArrayRecord(key)
+	if e1 != nil {
+		panic(e1)
 	}
 	log.Printf("Messages: %v", msgs)
 	for i := 0; i < len(msgs); i++ {
 		log.Printf("trying to write message: %v", msgs[i])
-		if err := stream.Send(&svcgrpc.MessageResponse{Message: msgs[i]}); err != nil {
+		if e2 := stream.Send(&svcgrpc.MessageResponse{Message: msgs[i]}); e2 != nil {
 			log.Printf("Writing message %d of %d to stream failed", i+1, len(msgs))
-			panic(err)
+			panic(e2)
 		}
 	}
 	return nil

@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
+	"time"
 
-	"github.com/TasSM/appCache/service/svcgrpc/client"
+	"github.com/TasSM/appCache/svcgrpc/client"
 )
 
 const (
@@ -46,15 +47,16 @@ func main() {
 	}
 	log.Printf("Statistics received: %v", s)
 
+	time.Sleep(1 * time.Second)
 	stream, err := c.GetRecord(testKey)
 	if err != nil {
 		log.Printf("Retrieving record stream %v failed", testKey)
 	}
-	a, err := c.StreamToArray(stream)
+	arr, err := c.StreamToArray(stream)
 	if err != nil {
 		log.Printf("Failed to unmarshall message stream to array")
 	}
-	log.Printf("Retrieved messages %v", a)
+	log.Printf("Retrieved messages %v", arr)
 
 	return
 }
