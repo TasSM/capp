@@ -72,10 +72,15 @@ func (ctlr *cacheClientController) StoreMessage(ctx context.Context, req *svcgrp
 }
 
 func (ctlr *cacheClientController) GetStatistics(ctx context.Context, req *svcgrpc.Empty) (*svcgrpc.StatisticResponse, error) {
+	stats, err := ctlr.client.GetStatistics()
+	if err != nil {
+		log.Printf("Retrieval of statistics from cache service failed: %v", err)
+		return nil, errors.New("Failed to retrieve statistics")
+	}
 	return &svcgrpc.StatisticResponse{
-		RecordCount:      int32(len(ctlr.inputChannels)),
-		RedisConnections: int32(ctlr.client.GetActiveConnections()),
-		LastUpdate:       time.Now().Format(time.RFC3339),
+		RecordCount:       int32(stats.RecordCount),
+		ActiveConnections: int32(stats.ActiveConnections),
+		LastUpdate:        stats.Timestamp,
 	}, nil
 }
 

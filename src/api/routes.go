@@ -2,36 +2,42 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/TasSM/appCache/defs"
 )
 
-type cacheClientRouter struct {
-	service *defs.CacheClientService
+type CacheClientRouter struct {
+	service defs.CacheClientService
 }
 
-func NewCacheClientRouter(svc *defs.CacheClientService) defs.CacheClientRouter {
-	return &cacheClientRouter{service: svc}
+func NewCacheClientRouter(svc defs.CacheClientService) defs.CacheClientRouter {
+	return &CacheClientRouter{service: svc}
 }
 
-func (cr *cacheClientRouter) HandleHealthcheck(w http.ResponseWriter, r *http.Request) {
+func (cr *CacheClientRouter) HandleHealthcheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
-	out := make(map[string]string)
-	out["status"] = "OK"
-	jsonout, err := json.Marshal(out)
-	if err != nil {
-		panic(err)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"Status":"OK"}`))
+}
+
+func (cr *CacheClientRouter) HandleStatistics(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	stats, e1 := cr.service.GetStatistics()
+	if e1 != nil {
+		log.Printf("ERROR - Retrieving statistics from redis failed: %v", e1)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"Message":"Internal Server Error"}`))
+		return
+	}
+	res, e2 := json.Marshal(stats)
+	if e2 != nil {
+		log.Printf("ERROR - Statistics retrieved are invalid: %v", e2)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"Message":"Internal Server Error"}`))
+		return
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(jsonout))
-}
-
-func (cr *cacheClientRouter) HandleStatistics(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "application/json")
-
-	// retrieve response from the stored service
-
-	//w.WriteHeader(http.StatusOK)
-	//w.Write([]byte(jsonout))
+	w.Write([]byte(res))
 }

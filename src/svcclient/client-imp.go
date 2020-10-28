@@ -1,4 +1,4 @@
-package client
+package svcclient
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/TasSM/appCache/service/svcgrpc"
+	"github.com/TasSM/appCache/svcgrpc"
 	"google.golang.org/grpc"
 )
 

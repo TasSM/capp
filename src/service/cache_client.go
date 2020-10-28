@@ -30,8 +30,18 @@ func NewCacheClient(addr string) defs.CacheClientService {
 	}
 }
 
-func (c *client) GetActiveConnections() int {
-	return c.cp.ActiveCount()
+func (c *client) GetStatistics() (*defs.StatisticResponse, error) {
+	conn := c.cp.Get()
+	defer conn.Close()
+	rc, err := redis.Values(conn.Do("KEYS", "*"))
+	if err != nil {
+		return nil, err
+	}
+	return &defs.StatisticResponse{
+		RecordCount:       len(rc),
+		ActiveConnections: c.cp.ActiveCount(),
+		Timestamp:         time.Now().Format(time.RFC3339),
+	}, nil
 }
 
 func (c *client) KeyExists(key string) bool {

@@ -6,9 +6,8 @@ import (
 
 type CacheClientService interface {
 	KeyExists(key string) bool
-	GetActiveConnections() int
 	CreateCacheArrayRecord(key string, ttl int64) error
-	GetStatistics() *StatisticResponse
+	GetStatistics() (*StatisticResponse, error)
 	Start(key string, expiry int64, dc chan string)
 	ReadArrayRecord(key string) ([]string, error)
 }

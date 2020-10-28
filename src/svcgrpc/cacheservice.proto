@@ -43,6 +43,6 @@ message Empty {}
 
 message StatisticResponse {
   int32 recordCount = 1;
-  int32 redisConnections = 2;
+  int32 activeConnections = 2;
   string lastUpdate = 3;
 }

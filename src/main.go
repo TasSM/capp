@@ -4,6 +4,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/TasSM/appCache/api"
 	"github.com/TasSM/appCache/service"
 	"github.com/TasSM/appCache/service/controller"
 	"github.com/TasSM/appCache/svcgrpc"
@@ -33,7 +34,11 @@ func main() {
 		panic(err)
 	}
 
-	log.Printf("Starting GRPC server at 127.0.0.1%s", grpcPort)
+	// Serve HTTP Routes
+	go api.ServeRoutes("8080", cacheService)
+
+	// Serve GRPC Routes
+	log.Printf("Starting GRPC server on port: %s", grpcPort)
 	err = server.Serve(con)
 	if err != nil {
 		panic(err)
