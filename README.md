@@ -2,4 +2,8 @@
 A performant redis client microservice
 
 - unit tests
-- http healthcheck endpoint, stats endpoint
+- logging formats
+- request logging
+- grpc logging
+- test_client integration tests
+- plug into responder as a submodule

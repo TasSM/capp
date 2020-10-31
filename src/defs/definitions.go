@@ -7,7 +7,10 @@ import (
 type CacheClientService interface {
 	KeyExists(key string) bool
 	CreateCacheArrayRecord(key string, ttl int64) error
+	DisposePool()
 	GetStatistics() (*StatisticResponse, error)
+	GetTTL(key string) (int, error)
+	Ping() error
 	Start(key string, expiry int64, dc chan string)
 	ReadArrayRecord(key string) ([]string, error)
 }

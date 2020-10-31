@@ -47,9 +47,6 @@ func (ctlr *cacheClientController) CreateRecord(ctx context.Context, req *svcgrp
 	ctlr.dataMutex.Lock()
 	defer ctlr.dataMutex.Unlock()
 	key, ttl := req.GetKey(), req.GetTtl()
-	if ctlr.client.KeyExists(key) == true {
-		return nil, errors.New("key in use")
-	}
 	err := ctlr.client.CreateCacheArrayRecord(key, int64(ttl))
 	if err != nil {
 		return nil, err

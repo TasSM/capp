@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"log"
 	"time"
 
@@ -30,6 +31,41 @@ func NewCacheClient(addr string) defs.CacheClientService {
 	}
 }
 
+func (c *client) Ping() error {
+	conn := c.cp.Get()
+	defer c.cp.Close()
+	res, err := redis.String(conn.Do("PING"))
+	if err != nil {
+		return err
+	}
+	if res != "PONG" {
+		return errors.New("Invalid ping response - expecting PONG")
+	}
+	return nil
+}
+
+func (c *client) CreateCacheArrayRecord(key string, ttl int64) error {
+	if check := c.KeyExists(key); check == true {
+		return errors.New("A record with this key already exists")
+	}
+	conn := c.cp.Get()
+	defer conn.Close()
+	conn.Send("MULTI")
+	conn.Send("LPUSH", key, "BEGIN")
+	conn.Send("EXPIRE", key, ttl)
+	res, err := conn.Do("EXEC")
+	if err != nil {
+		log.Printf("Received Error Status")
+		return err
+	}
+	log.Printf("Received status from redis %v", res)
+	return nil
+}
+
+func (c *client) DisposePool() {
+	c.cp.Close()
+}
+
 func (c *client) GetStatistics() (*defs.StatisticResponse, error) {
 	conn := c.cp.Get()
 	defer conn.Close()
@@ -44,6 +80,16 @@ func (c *client) GetStatistics() (*defs.StatisticResponse, error) {
 	}, nil
 }
 
+func (c *client) GetTTL(key string) (int, error) {
+	conn := c.cp.Get()
+	defer conn.Close()
+	ttl, err := redis.Int(conn.Do("TTL", key))
+	if err != nil {
+		return -2, err
+	}
+	return ttl, nil
+}
+
 func (c *client) KeyExists(key string) bool {
 	conn := c.cp.Get()
 	defer conn.Close()
@@ -55,21 +101,6 @@ func (c *client) KeyExists(key string) bool {
 		return true
 	}
 	return false
-}
-
-func (c *client) CreateCacheArrayRecord(key string, ttl int64) error {
-	conn := c.cp.Get()
-	defer conn.Close()
-	conn.Send("MULTI")
-	conn.Send("LPUSH", key, "BEGIN")
-	conn.Send("EXPIRE", key, ttl)
-	res, err := conn.Do("EXEC")
-	if err != nil {
-		log.Printf("Received Error Status")
-		return err
-	}
-	log.Printf("Received status from redis %v", res)
-	return nil
 }
 
 func (c *client) ReadArrayRecord(key string) ([]string, error) {
@@ -87,14 +118,17 @@ func (c *client) ReadArrayRecord(key string) ([]string, error) {
 func (c *client) Start(key string, expiry int64, dc chan string) {
 	for {
 		select {
-		case msg := <-dc:
+		case msg, ok := <-dc:
+			if !ok {
+				log.Printf("Data channel for %v received close signal", key)
+				return
+			}
 			if time.Now().Unix() > expiry {
 				log.Printf("INFO - Closing cache connection for expired server %s", key)
 				return
 			}
 			conn := c.cp.Get()
 			if _, err := conn.Do("RPUSH", key, msg); err != nil {
-				panic(err)
 				log.Printf("ERROR - Writing message to key %s failed", key)
 			}
 			conn.Close()
