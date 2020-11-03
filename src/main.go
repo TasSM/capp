@@ -5,8 +5,8 @@ import (
 	"net"
 
 	"github.com/TasSM/appCache/api"
+	"github.com/TasSM/appCache/controller"
 	"github.com/TasSM/appCache/service"
-	"github.com/TasSM/appCache/service/controller"
 	"github.com/TasSM/appCache/svcgrpc"
 	"github.com/TasSM/appCache/util"
 	"google.golang.org/grpc"

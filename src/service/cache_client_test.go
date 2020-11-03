@@ -1,6 +1,7 @@
 package service
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -8,7 +9,7 @@ import (
 	"github.com/alicebob/miniredis"
 )
 
-func SetupTest() (*miniredis.Miniredis, defs.CacheClientService) {
+func setupTest() (*miniredis.Miniredis, defs.CacheClientService) {
 	s, err := miniredis.Run()
 	if err != nil {
 		panic(err)
@@ -17,14 +18,14 @@ func SetupTest() (*miniredis.Miniredis, defs.CacheClientService) {
 	return s, cc
 }
 
-func TeardownTest(s *miniredis.Miniredis, cc defs.CacheClientService) {
+func teardownTest(s *miniredis.Miniredis, cc defs.CacheClientService) {
 	s.Close()
 	cc.DisposePool()
 }
 
 func TestRedisConnection(t *testing.T) {
-	s, cc := SetupTest()
-	defer TeardownTest(s, cc)
+	s, cc := setupTest()
+	defer teardownTest(s, cc)
 	err := cc.Ping()
 	if err != nil {
 		t.Errorf("Connection to redis from test client failed")
@@ -32,8 +33,8 @@ func TestRedisConnection(t *testing.T) {
 }
 
 func TestGetStatistics(t *testing.T) {
-	s, cc := SetupTest()
-	defer TeardownTest(s, cc)
+	s, cc := setupTest()
+	defer teardownTest(s, cc)
 	stats, err := cc.GetStatistics()
 	if err != nil {
 		t.Errorf("Unexpected error retrieving statistics")
@@ -44,8 +45,8 @@ func TestGetStatistics(t *testing.T) {
 }
 
 func TestKeyCheckAbsent(t *testing.T) {
-	s, cc := SetupTest()
-	defer TeardownTest(s, cc)
+	s, cc := setupTest()
+	defer teardownTest(s, cc)
 	if res := cc.KeyExists("testkeyalpha"); res == true {
 		t.Errorf("Key should not exist")
 	}
@@ -53,8 +54,8 @@ func TestKeyCheckAbsent(t *testing.T) {
 
 func TestCreateRecord(t *testing.T) {
 	key := "testkeyalpha"
-	s, cc := SetupTest()
-	defer TeardownTest(s, cc)
+	s, cc := setupTest()
+	defer teardownTest(s, cc)
 	if err := cc.CreateCacheArrayRecord(key, 100); err != nil {
 		t.Errorf("Error creating new record")
 	}
@@ -69,8 +70,8 @@ func TestCreateRecord(t *testing.T) {
 
 func TestCreateDuplicate(t *testing.T) {
 	key := "testkeyalpha"
-	s, cc := SetupTest()
-	defer TeardownTest(s, cc)
+	s, cc := setupTest()
+	defer teardownTest(s, cc)
 	if err := cc.CreateCacheArrayRecord(key, 100); err != nil {
 		t.Errorf("Error creating new record")
 	}
@@ -88,8 +89,8 @@ func TestCreateDuplicate(t *testing.T) {
 
 func TestKeyCheckPresent(t *testing.T) {
 	key := "testkeyalpha"
-	s, cc := SetupTest()
-	defer TeardownTest(s, cc)
+	s, cc := setupTest()
+	defer teardownTest(s, cc)
 	if err := cc.CreateCacheArrayRecord(key, 100); err != nil {
 		t.Errorf("Error creating new record")
 	}
@@ -100,17 +101,32 @@ func TestKeyCheckPresent(t *testing.T) {
 
 func TestReadWriteRecord(t *testing.T) {
 	key := "testkeyalpha"
-	s, cc := SetupTest()
-	defer TeardownTest(s, cc)
+	model := []string{"abc", "def", "hij"}
+	s, cc := setupTest()
+	defer teardownTest(s, cc)
 	if err := cc.CreateCacheArrayRecord(key, 100); err != nil {
 		t.Errorf("Error creating new record")
 	}
 	// Start the cache write values to the channel
 	dc := make(chan string, 10)
-	go cc.Start(key, time.Now().Unix()+500, dc)
-	dc <- "abc"
-	dc <- "def"
-	dc <- "hij"
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		cc.Start(key, time.Now().Unix()+500, dc)
+	}()
+	for i := range model {
+		dc <- model[i]
+	}
 	close(dc)
-
+	wg.Wait()
+	res, err := cc.ReadArrayRecord(key)
+	if err != nil {
+		t.Errorf("Error reading record for key %v", key)
+	}
+	for i, v := range res {
+		if v != model[i] {
+			t.Errorf("Mismatched element in read output")
+		}
+	}
 }

@@ -1,4 +1,4 @@
-package svcclient
+package client
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/TasSM/appCache/svcgrpc"
+	pb "github.com/TasSM/appCache/svcgrpc"
 	"google.golang.org/grpc"
 )
 
@@ -15,19 +15,19 @@ const (
 )
 
 type GrpcService struct {
-	grpcClient svcgrpc.ArrayBasedCacheClient
+	grpcClient pb.ArrayBasedCacheClient
 }
 
-func ConnectGRPCService(connString string) (*GrpcService, error) {
-	conn, err := grpc.Dial(connString, grpc.WithInsecure())
+func ConnectGRPCService(connection string) (*GrpcService, error) {
+	conn, err := grpc.Dial(connection, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
-	return &GrpcService{grpcClient: svcgrpc.NewArrayBasedCacheClient(conn)}, nil
+	return &GrpcService{grpcClient: pb.NewArrayBasedCacheClient(conn)}, nil
 }
 
-func (s *GrpcService) CreateRecord(key string, ttl int32) (*svcgrpc.CreateRecordResponse, error) {
-	req := &svcgrpc.CreateRecordRequest{
+func (s *GrpcService) CreateRecord(key string, ttl int32) (*pb.CreateRecordResponse, error) {
+	req := &pb.CreateRecordRequest{
 		Key: key,
 		Ttl: ttl,
 	}
@@ -41,8 +41,8 @@ func (s *GrpcService) CreateRecord(key string, ttl int32) (*svcgrpc.CreateRecord
 	return resp, nil
 }
 
-func (s *GrpcService) StoreMessage(key string, message string) (*svcgrpc.AppendRecordResponse, error) {
-	req := &svcgrpc.AppendRecordRequest{
+func (s *GrpcService) StoreMessage(key string, message string) (*pb.AppendRecordResponse, error) {
+	req := &pb.AppendRecordRequest{
 		Key:     key,
 		Message: message,
 	}
@@ -56,8 +56,8 @@ func (s *GrpcService) StoreMessage(key string, message string) (*svcgrpc.AppendR
 	return resp, nil
 }
 
-func (s *GrpcService) GetStatistics() (*svcgrpc.StatisticResponse, error) {
-	req := &svcgrpc.Empty{}
+func (s *GrpcService) GetStatistics() (*pb.StatisticResponse, error) {
+	req := &pb.Empty{}
 	ctx, cancelFunc := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancelFunc()
 	resp, err := s.grpcClient.GetStatistics(ctx, req)
@@ -67,8 +67,8 @@ func (s *GrpcService) GetStatistics() (*svcgrpc.StatisticResponse, error) {
 	return resp, nil
 }
 
-func (s *GrpcService) GetRecord(key string) (svcgrpc.ArrayBasedCache_GetRecordClient, error) {
-	req := &svcgrpc.GetRecordRequest{Key: key}
+func (s *GrpcService) GetRecord(key string) (pb.ArrayBasedCache_GetRecordClient, error) {
+	req := &pb.GetRecordRequest{Key: key}
 	ctx := context.Background()
 	resp, err := s.grpcClient.GetRecord(ctx, req)
 	if err != nil {
@@ -77,7 +77,7 @@ func (s *GrpcService) GetRecord(key string) (svcgrpc.ArrayBasedCache_GetRecordCl
 	return resp, nil
 }
 
-func (s *GrpcService) StreamToArray(stream svcgrpc.ArrayBasedCache_GetRecordClient) ([]string, error) {
+func (s *GrpcService) StreamToArray(stream pb.ArrayBasedCache_GetRecordClient) ([]string, error) {
 	out := []string{}
 	for {
 		msg, err := stream.Recv()

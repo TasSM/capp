@@ -4,6 +4,8 @@ import (
 	"net/http"
 )
 
+type CacheStartFunction func(string, int64, chan string)
+
 type CacheClientService interface {
 	KeyExists(key string) bool
 	CreateCacheArrayRecord(key string, ttl int64) error

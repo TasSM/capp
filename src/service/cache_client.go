@@ -114,7 +114,6 @@ func (c *client) ReadArrayRecord(key string) ([]string, error) {
 	return res, nil
 }
 
-// func to create new Redis record - called from a different API route
 func (c *client) Start(key string, expiry int64, dc chan string) {
 	for {
 		select {
@@ -125,6 +124,7 @@ func (c *client) Start(key string, expiry int64, dc chan string) {
 			}
 			if time.Now().Unix() > expiry {
 				log.Printf("INFO - Closing cache connection for expired server %s", key)
+				close(dc)
 				return
 			}
 			conn := c.cp.Get()
