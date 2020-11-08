@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TasSM/capp/defs"
+	"github.com/TasSM/capp/internal/defs"
 	"github.com/alicebob/miniredis"
 )
 

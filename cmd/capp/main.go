@@ -4,11 +4,11 @@ import (
 	"log"
 	"net"
 
-	"github.com/TasSM/capp/api"
-	"github.com/TasSM/capp/controller"
-	"github.com/TasSM/capp/service"
-	"github.com/TasSM/capp/svcgrpc"
-	"github.com/TasSM/capp/util"
+	"github.com/TasSM/capp/internal/api"
+	"github.com/TasSM/capp/internal/controller"
+	"github.com/TasSM/capp/internal/service"
+	"github.com/TasSM/capp/internal/svcgrpc"
+	"github.com/TasSM/capp/internal/util"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

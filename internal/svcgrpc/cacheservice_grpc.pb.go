@@ -126,7 +126,7 @@ type UnsafeArrayBasedCacheServer interface {
 	mustEmbedUnimplementedArrayBasedCacheServer()
 }
 
-func RegisterArrayBasedCacheServer(s *grpc.Server, srv ArrayBasedCacheServer) {
+func RegisterArrayBasedCacheServer(s grpc.ServiceRegistrar, srv ArrayBasedCacheServer) {
 	s.RegisterService(&_ArrayBasedCache_serviceDesc, srv)
 }
 
@@ -229,5 +229,5 @@ var _ArrayBasedCache_serviceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "src/svcgrpc/cacheservice.proto",
+	Metadata: "internal/svcgrpc/cacheservice.proto",
 }

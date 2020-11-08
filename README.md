@@ -2,5 +2,5 @@
 A performant caching microservice
 
 TODO:
-- plug into responder as a submodule
 - k8s config
+- V2 with in memory storage

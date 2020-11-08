@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TasSM/capp/defs"
-	"github.com/TasSM/capp/svcgrpc"
+	"github.com/TasSM/capp/internal/defs"
+	"github.com/TasSM/capp/internal/svcgrpc"
 )
 
 type cacheClientController struct {

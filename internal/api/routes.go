@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/TasSM/capp/defs"
+	"github.com/TasSM/capp/internal/defs"
 )
 
 type CacheClientRouter struct {

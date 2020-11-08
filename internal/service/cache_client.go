@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/TasSM/capp/defs"
+	"github.com/TasSM/capp/internal/defs"
 	"github.com/gomodule/redigo/redis"
 )
 

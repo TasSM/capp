@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/TasSM/capp/defs"
+	"github.com/TasSM/capp/internal/defs"
 )
 
 func ServeRoutes(port string, service defs.CacheClientService) {

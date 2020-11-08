@@ -4,11 +4,12 @@ import (
 	"context"
 	"log"
 	"net"
+	"sync"
 	"testing"
 
-	"github.com/TasSM/capp/controller"
-	"github.com/TasSM/capp/service"
-	pb "github.com/TasSM/capp/svcgrpc"
+	"github.com/TasSM/capp/internal/controller"
+	"github.com/TasSM/capp/internal/service"
+	pb "github.com/TasSM/capp/internal/svcgrpc"
 	"github.com/alicebob/miniredis"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"
@@ -140,9 +141,15 @@ func TestE2EFlow(t *testing.T) {
 	ctx := context.Background()
 	client := connectTestClient(ctx)
 	initializeTestRecord(client, t)
-	if _, err := client.StoreMessage(testKey, testMessage); err != nil {
-		t.Errorf(err.Error())
-	}
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if _, err := client.StoreMessage(testKey, testMessage); err != nil {
+			t.Errorf(err.Error())
+		}
+	}()
+	wg.Wait()
 	res, err := client.GetRecord(testKey)
 	if err != nil {
 		t.Errorf(err.Error())

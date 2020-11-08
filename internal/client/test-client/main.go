@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	client "github.com/TasSM/capp/client"
+	client "github.com/TasSM/capp/internal/client"
 )
 
 const (

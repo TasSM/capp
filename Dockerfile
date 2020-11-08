@@ -1,26 +1,21 @@
-FROM golang:1.14 as builder
+FROM golang:alpine as builder
 
 WORKDIR /build
 
-COPY src/ .
+COPY . .
 RUN go mod download
 
-COPY application/ .
-
-RUN GO111MODULE=on \
-    CGO_ENABLED=0 \
+RUN CGO_ENABLED=0 \
     GOOS=linux \
     GOARCH=amd64 \
-    go build -o main .
+    go build -o /bin/main cmd/capp/main.go
 
-FROM alpine:3
+FROM alpine
 # Requires $REDIS_HOST at runtime (host:port)
 
 RUN apk --no-cache add ca-certificates
 WORKDIR /dist
-RUN mkdir /dist/web
-COPY application/web/ ./web/
-COPY --from=builder /build/main .
+COPY --from=builder /bin/main .
 
 EXPOSE 8080
 
