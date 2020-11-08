@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	pb "github.com/TasSM/appCache/svcgrpc"
+	pb "github.com/TasSM/capp/svcgrpc"
 	"google.golang.org/grpc"
 )
 

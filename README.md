@@ -1,9 +1,6 @@
-# appCache
-A performant redis client microservice
+# capp
+A performant caching microservice
 
-- unit tests
-- logging formats
-- request logging
-- grpc logging
-- test_client integration tests
+TODO:
 - plug into responder as a submodule
+- k8s config

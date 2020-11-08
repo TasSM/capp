@@ -4,11 +4,11 @@ import (
 	"log"
 	"net"
 
-	"github.com/TasSM/appCache/api"
-	"github.com/TasSM/appCache/controller"
-	"github.com/TasSM/appCache/service"
-	"github.com/TasSM/appCache/svcgrpc"
-	"github.com/TasSM/appCache/util"
+	"github.com/TasSM/capp/api"
+	"github.com/TasSM/capp/controller"
+	"github.com/TasSM/capp/service"
+	"github.com/TasSM/capp/svcgrpc"
+	"github.com/TasSM/capp/util"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -38,7 +38,7 @@ func main() {
 	go api.ServeRoutes("8080", cacheService)
 
 	// Serve GRPC Routes
-	log.Printf("Starting GRPC server on port: %s", grpcPort)
+	log.Printf("INFO - Starting GRPC server on port: %s", grpcPort)
 	err = server.Serve(con)
 	if err != nil {
 		panic(err)

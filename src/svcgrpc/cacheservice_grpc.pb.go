@@ -229,5 +229,5 @@ var _ArrayBasedCache_serviceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "cacheservice.proto",
+	Metadata: "src/svcgrpc/cacheservice.proto",
 }

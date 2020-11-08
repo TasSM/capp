@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/TasSM/appCache/defs"
+	"github.com/TasSM/capp/defs"
 )
 
 func ServeRoutes(port string, service defs.CacheClientService) {
@@ -13,7 +13,7 @@ func ServeRoutes(port string, service defs.CacheClientService) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", router.HandleHealthcheck)
 	mux.HandleFunc("/stats", router.HandleStatistics)
-	log.Printf("Starting HTTP server on port: %v", port)
+	log.Printf("INFO - Starting HTTP server on port: %v", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%v", port), mux)
 	if err != nil {
 		log.Printf("ERROR - Failed to serve http on port: %v", port)

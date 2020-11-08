@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/TasSM/appCache/defs"
+	"github.com/TasSM/capp/defs"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -21,10 +21,10 @@ func NewCacheClient(addr string) defs.CacheClientService {
 			Dial: func() (redis.Conn, error) {
 				conn, err := redis.Dial("tcp", addr)
 				if err != nil {
-					log.Printf("Failed to dial redis host at %s", addr)
+					log.Printf("ERROR - Failed to dial redis host at %s", addr)
 					panic(err)
 				}
-				log.Printf("Successfully dialed redis host at %s", addr)
+				log.Printf("INFO - Successfully dialed redis host at %s", addr)
 				return conn, nil
 			},
 		},
@@ -53,12 +53,10 @@ func (c *client) CreateCacheArrayRecord(key string, ttl int64) error {
 	conn.Send("MULTI")
 	conn.Send("LPUSH", key, "BEGIN")
 	conn.Send("EXPIRE", key, ttl)
-	res, err := conn.Do("EXEC")
-	if err != nil {
-		log.Printf("Received Error Status")
+	if _, err := conn.Do("EXEC"); err != nil {
+		log.Printf("ERROR - Received Error Status")
 		return err
 	}
-	log.Printf("Received status from redis %v", res)
 	return nil
 }
 
@@ -108,7 +106,7 @@ func (c *client) ReadArrayRecord(key string) ([]string, error) {
 	defer conn.Close()
 	res, err := redis.Strings(conn.Do("LRANGE", key, 1, -1))
 	if err != nil {
-		log.Printf("Unable to read record %v", key)
+		log.Printf("ERROR - unable to read record %v", key)
 		return nil, err
 	}
 	return res, nil
@@ -119,7 +117,7 @@ func (c *client) Start(key string, expiry int64, dc chan string) {
 		select {
 		case msg, ok := <-dc:
 			if !ok {
-				log.Printf("Data channel for %v received close signal", key)
+				log.Printf("INFO -Data channel for %v received close signal", key)
 				return
 			}
 			if time.Now().Unix() > expiry {

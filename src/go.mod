@@ -1,4 +1,4 @@
-module github.com/TasSM/appCache
+module github.com/TasSM/capp
 
 go 1.14
 

@@ -6,9 +6,9 @@ import (
 	"net"
 	"testing"
 
-	"github.com/TasSM/appCache/controller"
-	"github.com/TasSM/appCache/service"
-	pb "github.com/TasSM/appCache/svcgrpc"
+	"github.com/TasSM/capp/controller"
+	"github.com/TasSM/capp/service"
+	pb "github.com/TasSM/capp/svcgrpc"
 	"github.com/alicebob/miniredis"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/test/bufconn"

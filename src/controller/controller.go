@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/TasSM/appCache/defs"
-	"github.com/TasSM/appCache/svcgrpc"
+	"github.com/TasSM/capp/defs"
+	"github.com/TasSM/capp/svcgrpc"
 )
 
 type cacheClientController struct {
@@ -71,7 +71,7 @@ func (ctlr *cacheClientController) StoreMessage(ctx context.Context, req *svcgrp
 func (ctlr *cacheClientController) GetStatistics(ctx context.Context, req *svcgrpc.Empty) (*svcgrpc.StatisticResponse, error) {
 	stats, err := ctlr.client.GetStatistics()
 	if err != nil {
-		log.Printf("Retrieval of statistics from cache service failed: %v", err)
+		log.Printf("ERROR - Retrieval of statistics from cache service failed: %v", err)
 		return nil, errors.New("Failed to retrieve statistics")
 	}
 	return &svcgrpc.StatisticResponse{
@@ -90,11 +90,9 @@ func (ctlr *cacheClientController) GetRecord(req *svcgrpc.GetRecordRequest, stre
 	if e1 != nil {
 		panic(e1)
 	}
-	log.Printf("Messages: %v", msgs)
 	for i := 0; i < len(msgs); i++ {
-		log.Printf("trying to write message: %v", msgs[i])
 		if e2 := stream.Send(&svcgrpc.MessageResponse{Message: msgs[i]}); e2 != nil {
-			log.Printf("Writing message %d of %d to stream failed", i+1, len(msgs))
+			log.Printf("ERROR - Writing message %d of %d to stream failed", i+1, len(msgs))
 			panic(e2)
 		}
 	}
