@@ -12,6 +12,7 @@ func ServeRoutes(port string, service defs.CacheClientService) {
 	router := NewCacheClientRouter(service)
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", router.HandleHealthcheck)
+	mux.HandleFunc("/ready", router.HandleReadyCheck)
 	mux.HandleFunc("/stats", router.HandleStatistics)
 	log.Printf("INFO - Starting HTTP server on port: %v", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%v", port), mux)

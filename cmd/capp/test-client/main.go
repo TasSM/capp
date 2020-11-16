@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	address = "localhost:9099"
+	address = "localhost:8081"
 )
 
 // test the grpc client

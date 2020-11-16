@@ -27,9 +27,32 @@ func (cr *CacheClientRouter) HandleHealthcheck(w http.ResponseWriter, r *http.Re
 	}
 }
 
+func (cr *CacheClientRouter) HandleReadyCheck(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		w.Header().Add("Content-Type", "application/json")
+		err := cr.service.Ping()
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+			w.Write([]byte(`{"Status":"Downstream Connection Error"}`))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"Status":"OK"}`))
+	} else {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte(`{"Message":"Method Not Allowed"}`))
+	}
+}
+
 func (cr *CacheClientRouter) HandleStatistics(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		w.Header().Add("Content-Type", "application/json")
+		err := cr.service.Ping()
+		if err != nil {
+			w.WriteHeader(http.StatusBadGateway)
+			w.Write([]byte(`{"Status":"Downstream Connection Error"}`))
+			return
+		}
 		stats, e1 := cr.service.GetStatistics()
 		if e1 != nil {
 			log.Printf("ERROR - Retrieving statistics from redis failed: %v", e1)

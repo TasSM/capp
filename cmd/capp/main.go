@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 
@@ -22,14 +23,19 @@ const (
 func main() {
 
 	cacheService := service.NewCacheClient(util.GetEnv(REDIS_HOST, "apps.labnet:6379"))
+	// // Test connection
+	// err := cacheService.Ping()
+	// if err != nil {
+	// 	panic(err)
+	// }
 	cacheServiceController := controller.NewCacheClientController(cacheService)
 
 	server := grpc.NewServer()
 	svcgrpc.RegisterArrayBasedCacheServer(server, cacheServiceController)
 	reflection.Register(server)
 
-	grpcPort := util.GetEnv(GRPC_ADDR, ":9099")
-	con, err := net.Listen(METHOD, grpcPort)
+	grpcPort := util.GetEnv(GRPC_ADDR, "8081")
+	con, err := net.Listen(METHOD, fmt.Sprintf(":%v", grpcPort))
 	if err != nil {
 		panic(err)
 	}

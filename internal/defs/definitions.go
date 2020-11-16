@@ -19,6 +19,7 @@ type CacheClientService interface {
 
 type CacheClientRouter interface {
 	HandleHealthcheck(w http.ResponseWriter, r *http.Request)
+	HandleReadyCheck(w http.ResponseWriter, r *http.Request)
 	HandleStatistics(w http.ResponseWriter, r *http.Request)
 }
 

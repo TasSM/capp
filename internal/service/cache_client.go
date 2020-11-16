@@ -24,7 +24,7 @@ func NewCacheClient(addr string) defs.CacheClientService {
 					log.Printf("ERROR - Failed to dial redis host at %s", addr)
 					panic(err)
 				}
-				log.Printf("INFO - Successfully dialed redis host at %s", addr)
+				log.Printf("INFO - Dialed redis host at %v", addr)
 				return conn, nil
 			},
 		},
@@ -34,12 +34,9 @@ func NewCacheClient(addr string) defs.CacheClientService {
 func (c *client) Ping() error {
 	conn := c.cp.Get()
 	defer c.cp.Close()
-	res, err := redis.String(conn.Do("PING"))
+	_, err := conn.Do("PING")
 	if err != nil {
 		return err
-	}
-	if res != "PONG" {
-		return errors.New("Invalid ping response - expecting PONG")
 	}
 	return nil
 }
