@@ -33,9 +33,9 @@ func NewCacheClient(addr string) defs.CacheClientService {
 
 func (c *client) Ping() error {
 	conn := c.cp.Get()
-	defer c.cp.Close()
-	_, err := conn.Do("PING")
-	if err != nil {
+	defer conn.Close()
+	if _, err := conn.Do("PING"); err != nil {
+		log.Printf("ERROR - Unable to reach redis service")
 		return err
 	}
 	return nil

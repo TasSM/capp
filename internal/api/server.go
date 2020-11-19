@@ -15,7 +15,7 @@ func ServeRoutes(port string, service defs.CacheClientService) {
 	mux.HandleFunc("/ready", router.HandleReadyCheck)
 	mux.HandleFunc("/stats", router.HandleStatistics)
 	log.Printf("INFO - Starting HTTP server on port: %v", port)
-	err := http.ListenAndServe(fmt.Sprintf(":%v", port), mux)
+	err := http.ListenAndServe(fmt.Sprintf(":%v", port), logEnabledRequestHandler(mux))
 	if err != nil {
 		log.Printf("ERROR - Failed to serve http on port: %v", port)
 		panic(err)
